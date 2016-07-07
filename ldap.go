@@ -35,7 +35,7 @@ func (self *LDAP) open() {
 	}
 
 	user := fmt.Sprintf("%s@%s", username, domain)
-	log.Printf("LDAP.Bind: %s:%s", user, password)
+	log.Printf("LDAP.Bind: %s", username)
 
 	err = self.ldap.Bind(user, password)
 	if err != nil {
