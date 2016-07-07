@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/sokool/console"
 	"github.com/sokool/goldap"
 	"github.com/sokool/goldap/filter"
 )
@@ -16,7 +15,7 @@ func main() {
 	)
 
 	adapter.Search([]string{"*"}).When(f).Fetch().Each(func(i int, e *ldap.Element) {
-		console.Log(fmt.Sprintf("%s [%s] ===> %s, %s", e.Value("displayName"), e.Value("location"), e.Value("description"), e.Value("comment")))
+		//console.Log(fmt.Sprintf("%s [%s] ===> %s, %s", e.Value("displayName"), e.Value("location"), e.Value("description"), e.Value("comment")))
 	})
 
 }

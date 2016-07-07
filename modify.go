@@ -3,7 +3,6 @@ package ldap
 import (
 	"gopkg.in/ldap.v2"
 	"log"
-	"github.com/sokool/console"
 )
 
 type (
@@ -22,7 +21,6 @@ func (self *Modify) In(dn string) *Modify {
 func (self *Modify) What(attrs map[string][]string) *Modify {
 	self.toModify = ldap.NewModifyRequest(self.dn)
 	for name, values := range attrs {
-		console.Log(name, values)
 		self.toModify.Replace(name, values)
 	}
 
