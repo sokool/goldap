@@ -5,7 +5,7 @@ import (
 	"gopkg.in/ldap.v2"
 	"strings"
 	"log"
-	f "im.in/ldap/filter"
+	f "github.com/sokool/goldap/filter"
 )
 
 type (

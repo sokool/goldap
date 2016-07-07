@@ -2,7 +2,7 @@ package ldap
 
 import (
 	"gopkg.in/ldap.v2"
-	"im.in/ldap/sanitizer"
+	"github.com/sokool/goldap/sanitizer"
 )
 
 type (
