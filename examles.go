@@ -1,9 +1,6 @@
 package main
 
 import (
-	"im.in/ldap"
-	"github.com/sokool/console"
-	"im.in/ldap/filter"
 	"fmt"
 )
 
