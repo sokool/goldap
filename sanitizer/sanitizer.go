@@ -13,22 +13,33 @@ type (
 var (
 	helpers = map[string]sanitizer{
 		"Ztou": ZuluToUnix,
+		"Ztot": ZuluToTimestamp,
 		"Ltou": LdapToUnix,
+
 	}
 )
 
-func ZuluToUnix(v, o []string) []string {
-	zuluTime := v[0]
+func zuluToTime(zulu string) time.Time {
 
 	location, _ := time.LoadLocation("Local")
-	year, _ := strconv.Atoi(zuluTime[:4])
-	month, _ := strconv.Atoi(zuluTime[4:6])
-	day, _ := strconv.Atoi(zuluTime[6:8])
-	hour, _ := strconv.Atoi(zuluTime[8:10])
-	minute, _ := strconv.Atoi(zuluTime[10:12])
-	second, _ := strconv.Atoi(zuluTime[12:14])
+	year, _ := strconv.Atoi(zulu[:4])
+	month, _ := strconv.Atoi(zulu[4:6])
+	day, _ := strconv.Atoi(zulu[6:8])
+	hour, _ := strconv.Atoi(zulu[8:10])
+	minute, _ := strconv.Atoi(zulu[10:12])
+	second, _ := strconv.Atoi(zulu[12:14])
 
-	time := time.Date(year, time.Month(month), day, hour, minute, second, 0, location).Format(time.UnixDate)
+	return time.Date(year, time.Month(month), day, hour, minute, second, 0, location)
+}
+
+func ZuluToTimestamp(v, o []string) []string {
+	time := zuluToTime(v[0]).Unix()
+	return []string{strconv.Itoa(int(time))}
+}
+
+func ZuluToUnix(v, o []string) []string {
+
+	time := zuluToTime(v[0]).Format(time.UnixDate)
 
 	return []string{time}
 }

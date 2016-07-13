@@ -44,9 +44,9 @@ func (self *Search) proceed() *Result {
 
 	base := strings.Join(bases, ",")
 
-	log.Printf("Select.BaseDN: %s\n", base)
-	log.Printf("Select.Filters: %s\n", string(self.filters))
-	log.Printf("Select.Attributes: %s\n", self.attributes)
+	//log.Printf("Select.BaseDN: %s\n", base)
+	//log.Printf("Select.Filters: %s\n", string(self.filters))
+	//log.Printf("Select.Attributes: %s\n", self.attributes)
 
 	request := ldap.NewSearchRequest(
 		base,
@@ -57,7 +57,7 @@ func (self *Search) proceed() *Result {
 	)
 
 	response, err := self.connection.ldap.Search(request)
-	log.Printf("Select.Found: %d items\n", len(response.Entries))
+	log.Printf("LDAP.Found: %d items, query %s\n", len(response.Entries), string(self.filters))
 	if err != nil {
 		log.Printf("Select.Search ERROR: %s", err)
 	}

@@ -21,21 +21,21 @@ var (
 )
 
 func (self *LDAP) close() {
-	log.Printf("LDAP.Close")
+	//log.Printf("LDAP.Close")
 	self.ldap.Close()
 }
 
 func (self *LDAP) open() {
 	var err error
 
-	log.Printf("LDAP.Dial: %s:%s", domain, port)
+	//log.Printf("LDAP.Dial: %s:%s", domain, port)
 	self.ldap, err = ldap.Dial("tcp", fmt.Sprintf("%s:%s", domain, port))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	user := fmt.Sprintf("%s@%s", username, domain)
-	log.Printf("LDAP.Bind: %s", username)
+	//log.Printf("LDAP.Bind: %s", username)
 
 	err = self.ldap.Bind(user, password)
 	if err != nil {
@@ -47,7 +47,7 @@ func (self *LDAP) Authenticate(usr, pass string) bool {
 	var err error
 
 	if usr == "" || pass == "" {
-		log.Printf("LDAP.Authentication : empty user or pass variables")
+		//log.Printf("LDAP.Authentication : empty user or pass variables")
 		return false
 	}
 
