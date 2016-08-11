@@ -1,8 +1,9 @@
 package ldap
 
 import (
-	"gopkg.in/ldap.v2"
 	"log"
+
+	"gopkg.in/ldap.v2"
 )
 
 type (
@@ -22,7 +23,11 @@ func (self *Modify) What(attrs map[string][]string) *Modify {
 	self.toModify = ldap.NewModifyRequest(self.dn)
 
 	for name, values := range attrs {
-		self.toModify.Replace(name, values)
+		if len(values) == 0 {
+			self.toModify.Delete(name, values)
+		} else {
+			self.toModify.Replace(name, values)
+		}
 	}
 
 	return self
