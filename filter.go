@@ -1,33 +1,32 @@
-package sanitizer
+package ldap
 
 import (
+	"encoding/base64"
 	"time"
 	"strconv"
 	"fmt"
-	"encoding/base64"
 	"gopkg.in/ldap.v2"
 )
 
-type (
-	filter func(*ldap.EntryAttribute) error
-)
-
 var (
-	definitions = map[string]filter{
-		//"Ztou": ZuluToUnix,
-		//"Ztot": ZuluToTimestamp,
-		//"Ltou": LdapToUnix,
-		"base64": Base64,
-	}
+	//Filters = map[string]sanitizer{
+	//	"Ztou": ZuluToUnix,
+	//	"Ztot": ZuluToTimestamp,
+	//	"Ltou": LdapToUnix,
+	//
+	//}
 )
 
-func Base64(e *ldap.EntryAttribute) error {
-	for i, bytes := range e.ByteValues {
-		e.Values[i] = base64.StdEncoding.EncodeToString(bytes)
-	}
 
-	return nil
+
+func Base64(e *ldap.EntryAttribute) []string {
+	var out []string
+	for _, bytes := range e.ByteValues {
+		out = append(out, base64.StdEncoding.EncodeToString(bytes))
+	}
+	return out
 }
+
 
 func zuluToTime(zulu string) time.Time {
 
@@ -63,14 +62,4 @@ func LdapToUnix(v, o []string) []string {
 
 func TimeToZulu(t time.Time) (string) {
 	return fmt.Sprintf("%d%02d%02d%02d%02d%02d.Z", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
-}
-
-func Run(name string, field *ldap.EntryAttribute) error {
-
-	if filter, ok := definitions[name]; ok {
-		return filter(field)
-
-	}
-
-	return fmt.Errorf("Filter %s not available\n", name)
 }

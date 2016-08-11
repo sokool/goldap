@@ -20,6 +20,7 @@ func (self *Modify) In(dn string) *Modify {
 
 func (self *Modify) What(attrs map[string][]string) *Modify {
 	self.toModify = ldap.NewModifyRequest(self.dn)
+
 	for name, values := range attrs {
 		self.toModify.Replace(name, values)
 	}

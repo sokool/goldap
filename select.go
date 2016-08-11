@@ -57,14 +57,20 @@ func (self *Search) proceed() *Result {
 	)
 
 	response, err := self.connection.ldap.Search(request)
-	log.Printf("LDAP.Found: %d items, query %s\n", len(response.Entries), string(self.filters))
 	if err != nil {
-		log.Printf("Select.Search ERROR: %s", err)
+		log.Printf("Select.Search ERROR: %s", err.Error())
 	}
 
-	var result Result
-	result = Result{SearchResult: *response}
-	return &result
+	log.Printf("LDAP.Found: %d items, query %s\n", len(response.Entries), string(self.filters))
+	//var result Result
+	//result = Result{SearchResult: *response}
+	//return &result
+
+	return &Result{
+		SearchResult: *response,
+		Filters: make(map[string][]string),
+	}
+
 }
 
 func (self *Search) Fetch() *Result {
@@ -79,14 +85,14 @@ func (self *Search) Fetch() *Result {
 	return series
 }
 
-func (self *Search) FetchOne() (*Element, bool) {
-	result := self.Fetch()
-	if len(result.Entries) != 1 {
-		return nil, false
-	}
-
-	return &Element{result.Entries[0]}, true
-}
+//func (self *Search) FetchOne() (*Element, bool) {
+//	result := self.Fetch()
+//	if len(result.Entries) != 1 {
+//		return nil, false
+//	}
+//
+//	return &Element{result.Entries[0]}, true
+//}
 
 func toDN(query, sep, namespace string) []dn {
 	var dns []dn

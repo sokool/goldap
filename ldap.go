@@ -6,6 +6,7 @@ import (
 	"strings"
 	"errors"
 	"fmt"
+	"sync"
 )
 
 type (
@@ -18,16 +19,17 @@ type (
 var (
 	Url, username, password, domain, port string
 	dns []dn
+	mutex = &sync.Mutex{}
 )
 
 func (self *LDAP) close() {
-	//log.Printf("LDAP.Close")
 	self.ldap.Close()
+	mutex.Unlock()
 }
 
 func (self *LDAP) open() {
 	var err error
-
+	mutex.Lock()
 	//log.Printf("LDAP.Dial: %s:%s", domain, port)
 	self.ldap, err = ldap.Dial("tcp", fmt.Sprintf("%s:%s", domain, port))
 	if err != nil {
