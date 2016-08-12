@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"github.com/sokool/goldap/sanitizer"
 )
 
 type (
@@ -70,18 +71,26 @@ func (self *LDAP) Authenticate(usr, pass string) bool {
 	return true
 }
 
-func (self *LDAP) Search(attributes []string) *Search {
+func (self *LDAP) Search(attributes []string, filters map[string][]string) *Search {
 	return &Search{
 		connection: self,
 		domain: dns,
 		attributes: attributes,
+		filters: filters,
 	}
 }
 
-func (self *LDAP) Modify() *Modify {
-	return &Modify{
+func (self *LDAP) Modify(sanitizers map[string][]string) *Modify {
+	m := &Modify{
+		sanitizer: sanitizer.New(),
 		connection:self,
 	}
+
+	for s, f := range sanitizers {
+		m.sanitizer.Register(s, f)
+	}
+
+	return m
 }
 
 func (self *LDAP) Add() {

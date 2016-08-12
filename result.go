@@ -9,12 +9,11 @@ import (
 type (
 	Result struct {
 		ldap.SearchResult
-		Filters map[string][]string
+		sanitizer *sanitizer.Sanitizer
 	}
 
 	Element struct {
 		*ldap.Entry
-		filters map[string][]string
 	}
 )
 //
@@ -30,11 +29,6 @@ type (
 
 func (e *Element) Each(fn func(*ldap.EntryAttribute)) {
 	for _, a := range e.Attributes {
-		if f, ok := e.filters[a.Name]; ok {
-			for _, m := range f {
-				sanitizer.Run(m, a)
-			}
-		}
 		fn(a)
 	}
 }
@@ -50,27 +44,24 @@ func (e *Element) MarshalJSON() ([]byte, error) {
 	return json.Marshal(out)
 }
 
-func (self *Result) RegisterFilter(filter string, fields []string) *Result {
-	for _, n := range fields {
-		self.Filters[n] = append(self.Filters[n], filter)
-	}
-
-	return self
+func (r *Result) Count() int {
+	return len(r.Entries)
 }
 
-func (self *Result) Count() int {
-	return len(self.Entries)
-}
+func (r *Result) Each(fn func(int, *Element)) {
+	for idx, e := range r.Entries {
+		for _, a := range e.Attributes {
+			r.sanitizer.Filter(a.Name, a)
+		}
 
-func (self *Result) Each(fn func(int, *Element)) {
-	for idx, e := range self.Entries {
-		fn(idx, &Element{e, self.Filters})
+		fn(idx, &Element{e})
+
 	}
 }
 
-func (e *Result) MarshalJSON() ([]byte, error) {
+func (r *Result) MarshalJSON() ([]byte, error) {
 	out := []*Element{}
-	e.Each(func(i int, e *Element) {
+	r.Each(func(i int, e *Element) {
 		out = append(out, e)
 	})
 

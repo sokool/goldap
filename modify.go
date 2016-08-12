@@ -4,41 +4,47 @@ import (
 	"log"
 
 	"gopkg.in/ldap.v2"
+	"github.com/sokool/goldap/sanitizer"
 )
 
 type (
 	Modify struct {
+		sanitizer  *sanitizer.Sanitizer
 		connection *LDAP
 		dn         string
 		toModify   *ldap.ModifyRequest
 	}
 )
 
-func (self *Modify) In(dn string) *Modify {
-	self.dn = dn
-	return self
+func (m *Modify) In(dn string) *Modify {
+	m.dn = dn
+	return m
 }
 
-func (self *Modify) What(attrs map[string][]string) *Modify {
-	self.toModify = ldap.NewModifyRequest(self.dn)
+func (m *Modify) What(attr map[string][]string) *Modify {
+	m.toModify = ldap.NewModifyRequest(m.dn)
 
-	for name, values := range attrs {
+	for name, values := range attr {
 		if len(values) == 0 {
-			self.toModify.Delete(name, values)
+			m.toModify.Delete(name, values)
 		} else {
-			self.toModify.Replace(name, values)
+			for i, v := range values {
+				values[i], _ = m.sanitizer.Sanitize(name, v)
+			}
+
+			m.toModify.Replace(name, values)
 		}
 	}
 
-	return self
+	return m
 }
 
-func (self *Modify) Flush() error {
-	self.connection.open()
-	err := self.connection.ldap.Modify(self.toModify)
+func (m *Modify) Flush() error {
+	m.connection.open()
+	err := m.connection.ldap.Modify(m.toModify)
 	if err != nil {
 		log.Printf("LDAP.Modify ERROR: %s", err.Error())
 	}
-	self.connection.close()
+	m.connection.close()
 	return err
 }

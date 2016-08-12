@@ -6,6 +6,7 @@ import (
 	"strings"
 	"log"
 	f "github.com/sokool/goldap/filter"
+	"github.com/sokool/goldap/sanitizer"
 )
 
 type (
@@ -13,8 +14,9 @@ type (
 		connection *LDAP
 		domain     []dn
 		dns        []dn
-		filters    f.Filter
+		queryPart  f.Filter
 		attributes []string
+		filters    map[string][]string
 	}
 
 	dn struct {
@@ -32,7 +34,7 @@ func (self *Search) In(namespace, value string) *Search {
 }
 
 func (self *Search) When(filter f.Filter) *Search {
-	self.filters = filter
+	self.queryPart = filter
 	return self
 }
 
@@ -50,27 +52,28 @@ func (self *Search) proceed() *Result {
 
 	request := ldap.NewSearchRequest(
 		base,
-		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 5000, 0, false,
-		string(self.filters),
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 2000, 0, false,
+		string(self.queryPart),
 		self.attributes,
 		nil,
 	)
 
-	response, err := self.connection.ldap.Search(request)
+	response, err := self.connection.ldap.SearchWithPaging(request, 500)
 	if err != nil {
 		log.Printf("Select.Search ERROR: %s", err.Error())
 	}
 
-	log.Printf("LDAP.Found: %d items, query %s\n", len(response.Entries), string(self.filters))
-	//var result Result
-	//result = Result{SearchResult: *response}
-	//return &result
+	log.Printf("LDAP.Found: %d items, query %s\n", len(response.Entries), string(self.queryPart))
 
-	return &Result{
+	r := &Result{
 		SearchResult: *response,
-		Filters: make(map[string][]string),
+		sanitizer: sanitizer.New(),
+	}
+	for n, v := range self.filters {
+		r.sanitizer.Register(n, v)
 	}
 
+	return r
 }
 
 func (self *Search) Fetch() *Result {
@@ -85,14 +88,14 @@ func (self *Search) Fetch() *Result {
 	return series
 }
 
-//func (self *Search) FetchOne() (*Element, bool) {
-//	result := self.Fetch()
-//	if len(result.Entries) != 1 {
-//		return nil, false
-//	}
-//
-//	return &Element{result.Entries[0]}, true
-//}
+func (self *Search) FetchOne() (*Element, bool) {
+	result := self.Fetch()
+	if len(result.Entries) != 1 {
+		return nil, false
+	}
+
+	return &Element{result.Entries[0]}, true
+}
 
 func toDN(query, sep, namespace string) []dn {
 	var dns []dn

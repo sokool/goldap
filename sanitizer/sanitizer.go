@@ -9,24 +9,58 @@ import (
 )
 
 type (
-	filter func(*ldap.EntryAttribute) error
+	Sanitizer struct {
+		fields map[string][]string
+	}
 )
 
 var (
-	definitions = map[string]filter{
+	filters = map[string]func(*ldap.EntryAttribute){
 		//"Ztou": ZuluToUnix,
 		//"Ztot": ZuluToTimestamp,
 		//"Ltou": LdapToUnix,
-		"base64": Base64,
+		"base64encode": base64encode,
+	}
+
+	sanitizers = map[string]func(string) string{
+		"base64decode": base64decode,
 	}
 )
 
-func Base64(e *ldap.EntryAttribute) error {
+func (s *Sanitizer) Register(sanitizer string, names []string) {
+	for _, n := range names {
+		s.fields[n] = append(s.fields[n], sanitizer)
+	}
+}
+
+func (s *Sanitizer) Filter(name string, e *ldap.EntryAttribute) {
+	if m, is := s.fields[name]; is {
+		for _, op := range m {
+			filters[op](e)
+		}
+	}
+}
+
+func (s *Sanitizer) Sanitize(name string, value string) (string, error) {
+	if m, is := s.fields[name]; is {
+		for _, op := range m {
+			return sanitizers[op](value), nil
+		}
+	}
+
+	return "", fmt.Errorf("Sanitizer %s not exists", s)
+}
+
+func base64encode(e *ldap.EntryAttribute) {
 	for i, bytes := range e.ByteValues {
 		e.Values[i] = base64.StdEncoding.EncodeToString(bytes)
 	}
+}
 
-	return nil
+func base64decode(s string) string {
+	o, _ := base64.StdEncoding.DecodeString(s)
+
+	return string(o)
 }
 
 func zuluToTime(zulu string) time.Time {
@@ -65,12 +99,8 @@ func TimeToZulu(t time.Time) (string) {
 	return fmt.Sprintf("%d%02d%02d%02d%02d%02d.Z", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
 }
 
-func Run(name string, field *ldap.EntryAttribute) error {
-
-	if filter, ok := definitions[name]; ok {
-		return filter(field)
-
+func New() *Sanitizer {
+	return &Sanitizer{
+		fields: make(map[string][]string),
 	}
-
-	return fmt.Errorf("Filter %s not available\n", name)
 }
