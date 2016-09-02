@@ -48,7 +48,7 @@ func (s *Sanitizer) Sanitize(name string, value string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Sanitizer %s not exists", s)
+	return value, fmt.Errorf("Sanitizer %s not exists", s)
 }
 
 func base64encode(e *ldap.EntryAttribute) {
