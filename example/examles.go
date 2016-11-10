@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	ldap.Url = "michal.sokolowski:dupa.romana.10@corp.smtsoftware.com:389"
+	ldap.Url = "user:password@host:port"
 	adapter := ldap.New()
 
 	f := filter.AND(
